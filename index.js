@@ -51,11 +51,11 @@ const test = () => {
         },
       });
 
-      // Disable caching
-      await page.setCacheEnabled(false);
-
       // Create a page
       const page = await browser.newPage();
+
+      // Disable caching
+      await page.setCacheEnabled(false);
 
       // Go to your site
       await page.goto(config.url, {
@@ -154,7 +154,7 @@ const test = () => {
 };
 
 const main = async () => {
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 1; i++) {
     console.log(`Test Number ${i + 1}`);
     console.log(`-------------------------------------`);
     await test();
