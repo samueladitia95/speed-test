@@ -1,6 +1,7 @@
 // Import puppeteer
 const puppeteer = require("puppeteer");
 const config = require("./config");
+const fs = require("node:fs");
 
 const printData = (eventName, startTime = 0, endTime = 0) => {
   console.log(`${eventName}: `);
@@ -8,6 +9,34 @@ const printData = (eventName, startTime = 0, endTime = 0) => {
   console.log(`   End Time   : ${endTime}`);
   console.log(`   Duration   : ${endTime - startTime} ms`);
   console.log("+++++++++++++++++++");
+  return endTime - startTime;
+};
+
+const saveToCSV = (
+  Redirect,
+  DNS,
+  Connect,
+  Request,
+  Response,
+  DOMTotal,
+  DOMParse,
+  DOMExecuteScripts,
+  DOMContentLoaded,
+  DOMSubResources,
+  LoadEvent,
+  totalDuration
+) => {
+  let csv =
+    "Time,Redirect,DNS,Connect,Request,Response,DOM Total,DOM Parse,DOM Execute Scripts,DOM Content Loaded,DOM Sub Resources,Load Event,Total Duration";
+  if (fs.existsSync("result.csv")) {
+    csv = fs.readFileSync("result.csv", "utf-8");
+  }
+  const now = new Date().toString();
+  // console.log(now.toString())
+  csv =
+    csv +
+    `\n${now},${Redirect},${DNS},${Connect},${Request},${Response},${DOMTotal},${DOMParse},${DOMExecuteScripts},${DOMContentLoaded},${DOMSubResources},${LoadEvent},${totalDuration}`;
+  fs.writeFileSync("result.csv", csv, "utf-8");
 };
 
 const test = () => {
@@ -23,64 +52,97 @@ const test = () => {
       await page.setCacheEnabled(false);
 
       // Go to your site
-      await page.goto(config.url);
+      await page.goto(config.url, {
+        timeout: 10000,
+        waitUntil: "networkidle2",
+      });
+
+      // await waitTillHTMLRendered(page);
 
       const performance = await page.evaluate(async () => {
         window.scrollTo({ top: 100000000000000 });
-
-        if (config.customBehaviour) {
-          await config.customBehaviour();
-        }
-
         const timing = performance.getEntriesByType("navigation")[0].toJSON();
 
         return timing;
       });
-
-      printData("Redirect", performance.redirectStart, performance.redirectEnd);
-      printData(
+      console.log(await page.metrics());
+      const redirect = printData(
+        "Redirect",
+        performance.redirectStart,
+        performance.redirectEnd
+      );
+      const dns = printData(
         "DNS",
         performance.domainLookupStart,
         performance.domainLookupEnd
       );
-      printData("Connect", performance.connectStart, performance.connectEnd);
+      const connect = printData(
+        "Connect",
+        performance.connectStart,
+        performance.connectEnd
+      );
 
-      printData("Request", performance.requestStart, performance.responseStart);
-      printData("Response", performance.responseStart, performance.responseEnd);
+      const request = printData(
+        "Request",
+        performance.requestStart,
+        performance.responseStart
+      );
+      const response = printData(
+        "Response",
+        performance.responseStart,
+        performance.responseEnd
+      );
 
-      printData("DOM Total", performance.responseEnd, performance.domComplete);
-      printData(
+      const domTotal = printData(
+        "DOM Total",
+        performance.responseEnd,
+        performance.domComplete
+      );
+      const domParse = printData(
         "DOM Parse",
         performance.responseEnd,
         performance.domInteractive
       );
-      printData(
+      const domExecute = printData(
         "DOM Execute Scripts",
         performance.domInteractive,
         performance.domContentLoadedEventStart
       );
-      printData(
+      const domContent = printData(
         "DOM Content Loaded",
         performance.domContentLoadedEventStart,
         performance.domContentLoadedEventEnd
       );
-      printData(
+      const domSub = printData(
         "DOM Sub Resources",
         performance.domContentLoadedEventEnd,
         performance.domComplete
       );
 
-      printData(
+      const loadEvent = printData(
         "Load Event",
         performance.loadEventStart,
         performance.loadEventEnd
       );
-
-      console.log("Duration", performance.duration);
-
+      const totalDuration = performance.duration;
+      console.log("Total Duration", performance.duration);
+      console.log("URL:", config.url);
       // Close browser.
       await browser.close();
-
+      saveToCSV(
+        redirect,
+        dns,
+        connect,
+        request,
+        response,
+        domTotal,
+        domParse,
+        domExecute,
+        domContent,
+        domSub,
+        loadEvent,
+        totalDuration
+      );
       resolve();
     } catch {
       reject("Error");
