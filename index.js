@@ -43,13 +43,19 @@ const test = () => {
   return new Promise(async (resolve, reject) => {
     try {
       // Launch the browser
-      const browser = await puppeteer.launch();
-
-      // Create a page
-      const page = await browser.newPage();
+      const browser = await puppeteer.launch({
+        headless: false,
+        defaultViewport: {
+          width: 1920,
+          height: 1080,
+        },
+      });
 
       // Disable caching
       await page.setCacheEnabled(false);
+
+      // Create a page
+      const page = await browser.newPage();
 
       // Go to your site
       await page.goto(config.url, {
@@ -57,10 +63,7 @@ const test = () => {
         waitUntil: "networkidle2",
       });
 
-      // await waitTillHTMLRendered(page);
-
       const performance = await page.evaluate(async () => {
-        window.scrollTo({ top: 100000000000000 });
         const timing = performance.getEntriesByType("navigation")[0].toJSON();
 
         return timing;
@@ -151,7 +154,7 @@ const test = () => {
 };
 
 const main = async () => {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 10; i++) {
     console.log(`Test Number ${i + 1}`);
     console.log(`-------------------------------------`);
     await test();
