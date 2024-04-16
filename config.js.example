@@ -1,0 +1,12 @@
+module.exports = {
+  url: "https://ruparupa.com",
+  customBehaviour: () => {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve();
+      } catch {
+        reject();
+      }
+    });
+  },
+};
