@@ -1,3 +1,4 @@
 module.exports = {
-  url: "https://ruparupa.com"
+  url: "https://ruparupa.com",
+  iteration: 10,
 };

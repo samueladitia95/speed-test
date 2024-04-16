@@ -154,7 +154,7 @@ const test = () => {
 };
 
 const main = async () => {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < config.iteration || 1; i++) {
     console.log(`Test Number ${i + 1}`);
     console.log(`-------------------------------------`);
     await test();
