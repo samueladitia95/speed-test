@@ -2,6 +2,7 @@
 const puppeteer = require("puppeteer");
 const config = require("./config");
 const fs = require("node:fs");
+const iphone = puppeteer.KnownDevices["iPhone 12 Pro"];
 
 const printData = (eventName, startTime = 0, endTime = 0) => {
   console.log(`${eventName}: `);
@@ -45,14 +46,23 @@ const test = () => {
       // Launch the browser
       const browser = await puppeteer.launch({
         headless: false,
-        defaultViewport: {
-          width: 1920,
-          height: 1080,
-        },
+        defaultViewport: config.isMobile
+          ? {
+              width: 390,
+              height: 884,
+              isMobile: true,
+            }
+          : {
+              width: 1920,
+              height: 1080,
+            },
       });
 
       // Create a page
       const page = await browser.newPage();
+      if (config.isMobile) {
+        await page.emulate(iphone);
+      }
 
       // Disable caching
       await page.setCacheEnabled(false);
@@ -154,7 +164,7 @@ const test = () => {
 };
 
 const main = async () => {
-  for (let i = 0; i < config.iteration || 1; i++) {
+  for (let i = 0; i < config.iteration ? config.iteration : 1; i++) {
     console.log(`Test Number ${i + 1}`);
     console.log(`-------------------------------------`);
     await test();

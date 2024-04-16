@@ -1,4 +1,5 @@
 module.exports = {
   url: "https://ruparupa.com",
   iteration: 10,
+  isMobile: true,
 };
