@@ -67,9 +67,17 @@ const test = () => {
       // Disable caching
       await page.setCacheEnabled(false);
 
+      const client = await page.createCDPSession();
+      client.send("Network.emulateNetworkConditions", {
+        offline: false,
+        downloadThroughput: (3 * 1024 * 1024) / 8,
+        uploadThroughput: (1.5 * 1024) / 8,
+        latency: 40,
+      });
+
       // Go to your site
       await page.goto(config.url, {
-        timeout: 10000,
+        timeout: 30000,
         waitUntil: "networkidle2",
       });
 
@@ -164,11 +172,12 @@ const test = () => {
 };
 
 const main = async () => {
-  for (let i = 0; i < config.iteration ? config.iteration : 1; i++) {
+  const iteration = config.iteration ? config.iteration : 1;
+  for (let i = 0; i < iteration; i++) {
     console.log(`Test Number ${i + 1}`);
     console.log(`-------------------------------------`);
     await test();
-    console.log(`-------------------------------------`);
+    console.log(`-------------------------------------`, i);
   }
 };
 main();
