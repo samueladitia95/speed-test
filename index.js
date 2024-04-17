@@ -30,7 +30,10 @@ const saveToCSV = (
   let csv =
     "Time,Redirect,DNS,Connect,Request,Response,DOM Total,DOM Parse,DOM Execute Scripts,DOM Content Loaded,DOM Sub Resources,Load Event,Total Duration";
   if (fs.existsSync("result.csv")) {
-    csv = fs.readFileSync("result.csv", "utf-8");
+    const file = fs.readFileSync("result.csv", "utf-8");
+    if (file !== "") {
+      csv = file;
+    }
   }
   const now = new Date().toString();
   // console.log(now.toString())
