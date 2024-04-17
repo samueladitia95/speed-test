@@ -70,9 +70,9 @@ const test = () => {
       const client = await page.createCDPSession();
       client.send("Network.emulateNetworkConditions", {
         offline: false,
-        downloadThroughput: (3 * 1024 * 1024) / 8,
-        uploadThroughput: (1.5 * 1024) / 8,
-        latency: 40,
+        downloadThroughput: 1.6 * 1024 * 1024,
+        uploadThroughput: 1.6 * 1024 * 1024,
+        latency: 100,
       });
 
       // Go to your site
