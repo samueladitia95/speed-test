@@ -35,7 +35,7 @@ const saveToCSV = (
       csv = file;
     }
   }
-  const now = new Date().toString();
+  const now = new Date().toISOString();
   // console.log(now.toString())
   csv =
     csv +
@@ -69,6 +69,10 @@ const test = () => {
 
       // Disable caching
       await page.setCacheEnabled(false);
+
+      await page.emulateNetworkConditions(
+        puppeteer.PredefinedNetworkConditions["Fast 3G"]
+      );
 
       const client = await page.createCDPSession();
       client.send("Network.emulateNetworkConditions", {
