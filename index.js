@@ -25,10 +25,11 @@ const saveToCSV = (
   DOMContentLoaded,
   DOMSubResources,
   LoadEvent,
-  totalDuration
+  totalDuration,
+  fcp
 ) => {
   let csv =
-    "Time,Redirect,DNS,Connect,Request,Response,DOM Total,DOM Parse,DOM Execute Scripts,DOM Content Loaded,DOM Sub Resources,Load Event,Total Duration";
+    "Time,Redirect,DNS,Connect,Request,Response,DOM Total,DOM Parse,DOM Execute Scripts,DOM Content Loaded,DOM Sub Resources,Load Event,Total Duration,FCP";
   if (fs.existsSync("result.csv")) {
     const file = fs.readFileSync("result.csv", "utf-8");
     if (file !== "") {
@@ -39,7 +40,7 @@ const saveToCSV = (
   // console.log(now.toString())
   csv =
     csv +
-    `\n${now},${Redirect},${DNS},${Connect},${Request},${Response},${DOMTotal},${DOMParse},${DOMExecuteScripts},${DOMContentLoaded},${DOMSubResources},${LoadEvent},${totalDuration}`;
+    `\n${now},${Redirect},${DNS},${Connect},${Request},${Response},${DOMTotal},${DOMParse},${DOMExecuteScripts},${DOMContentLoaded},${DOMSubResources},${LoadEvent},${totalDuration},${fcp}`;
   fs.writeFileSync("result.csv", csv, "utf-8");
 };
 
@@ -88,12 +89,20 @@ const test = () => {
         waitUntil: "networkidle2",
       });
 
-      const performance = await page.evaluate(async () => {
+      const { performance, fcp } = await page.evaluate(async () => {
         const timing = performance.getEntriesByType("navigation")[0].toJSON();
+        const fcp = performance
+          .getEntriesByType("paint")
+          .find(({ name }) => name === "first-contentful-paint")
+          .toJSON();
 
-        return timing;
+        return {
+          performance: timing,
+          fcp,
+        };
       });
       console.log(await page.metrics());
+
       const redirect = printData(
         "Redirect",
         performance.redirectStart,
@@ -153,8 +162,12 @@ const test = () => {
         performance.loadEventEnd
       );
       const totalDuration = performance.duration;
-      console.log("Total Duration", performance.duration);
+      console.log("Total Duration", performance.duration, "ms");
+
+      const fcpEvent = printData("FCP", 0, fcp.startTime);
+
       console.log("URL:", config.url);
+      console.log("FCP:", fcpEvent, "ms");
       // Close browser.
       await browser.close();
       saveToCSV(
@@ -169,7 +182,8 @@ const test = () => {
         domContent,
         domSub,
         loadEvent,
-        totalDuration
+        totalDuration,
+        fcpEvent
       );
       resolve();
     } catch {
@@ -184,7 +198,7 @@ const main = async () => {
     console.log(`Test Number ${i + 1}`);
     console.log(`-------------------------------------`);
     await test();
-    console.log(`-------------------------------------`, i);
+    console.log(`-------------------------------------`);
   }
 };
 main();
